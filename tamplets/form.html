@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>משתלה אונליין</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
+      padding: 10px;
+    }
+
+    .top-bar {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      display: flex;
+      gap: 10px;
+      z-index: 999;
+    }
+
+    .cart-icon {
+      font-size: 26px;
+      background-color: white;
+      padding: 8px 12px;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .cart-icon span {
+      background: red;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 12px;
+      position: absolute;
+      top: -5px;
+      right: -5px;
+    }
+
+    .send-button {
+      padding: 10px 16px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      height: 48px;
+      margin-top: 1px;
+    }
+
+    .form-container {
+      background-color: #ffffff;
+      max-width: 600px;
+      margin: 80px auto 20px auto;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .gallery-item {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      padding: 10px;
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .gallery-item h4 {
+      margin: 10px 0 5px;
+      font-size: 16px;
+    }
+
+    .gallery-item button {
+      padding: 6px 10px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .controls {
+      margin-top: 10px;
+    }
+
+    dialog#cartModal {
+      max-width: 400px;
+      border-radius: 12px;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="cart-icon" onclick="openCartModal()">
+      🛒<span id="cartCount">0</span>
+    </div>
+    <button class="send-button" onclick="submitForm()">שלח</button>
+  </div>
+
+  <dialog id="cartModal">
+    <h3>העגלה שלך</h3>
+    <div id="cartList"></div>
+    <button onclick="closeCartModal()">סגור</button>
+  </dialog>
+
+  <div class="form-container">
+    <h2>טופס ההזמנה</h2>
+    <form id="mainForm" method="POST" action="/send" enctype="multipart/form-data">
+      <label>שם מלא:</label>
+      <input type="text" name="fullName" required placeholder="לדוגמה: דנה כהן">
+
+      <label>טלפון:</label>
+      <input type="text" name="phone" required>
+
+      <label>כתובת למשלוח:</label>
+      <input type="text" name="address" required placeholder="רחוב, מספר, עיר">
+
+      <label>תמונה (למשל צילום שער):</label>
+      <input type="file" name="image" accept="image/*" capture="environment">
+
+      <input type="hidden" name="cartData" id="cartData">
+    </form>
+
+    <div class="gallery">
+      <div class="gallery-item" data-name="בזיליקום" data-price="10">
+        <img src="/static/images/basil.jpg" alt="בזיליקום">
+        <h4>בזיליקום</h4>
+        <div class="controls"></div>
+      </div>
+
+      <div class="gallery-item" data-name="עגבניות שרי" data-price="12">
+        <img src="/static/images/cherry-tomatoes.jpg" alt="עגבניות שרי">
+        <h4>עגבניות שרי</h4>
+        <div class="controls"></div>
+      </div>
+
+      <div class="gallery-item" data-name="לוונדר" data-price="15">
+        <img src="/static/images/lavender.jpg" alt="לוונדר">
+        <h4>לוונדר</h4>
+        <div class="controls"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let cart = {};
+
+    function addToCart(name, price) {
+      if (cart[name]) {
+        cart[name].quantity += 1;
+      } else {
+        cart[name] = { price: price, quantity: 1 };
+      }
+      updateCartCount();
+      updateGalleryButtons();
+    }
+
+    function removeFromCart(name) {
+      if (cart[name]) {
+        cart[name].quantity -= 1;
+        if (cart[name].quantity <= 0) {
+          delete cart[name];
+        }
+      }
+      updateCartCount();
+      updateGalleryButtons();
+    }
+
+    function updateCartCount() {
+      const totalItems = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
+      document.getElementById("cartCount").textContent = totalItems;
+    }
+
+    function prepareCartData() {
+      document.getElementById("cartData").value = JSON.stringify(cart);
+    }
+
+    function submitForm() {
+      const form = document.getElementById("mainForm");
+      const fullName = form.fullName.value.trim();
+      const phone = form.phone.value.trim();
+
+      if (!fullName || !phone) {
+        alert("אנא מלא את השם המלא ומספר הטלפון לפני השליחה.");
+        return;
+      }
+
+      prepareCartData();
+      form.submit();
+    }
+
+    function updateGalleryButtons() {
+      const buttons = document.querySelectorAll(".gallery-item");
+      buttons.forEach(div => {
+        const name = div.getAttribute("data-name");
+        const price = parseInt(div.getAttribute("data-price"));
+        const controls = div.querySelector(".controls");
+        if (cart[name]) {
+          controls.innerHTML = `
+            <button onclick="addToCart('${name}', ${price})">➕</button>
+            <span>${cart[name].quantity}</span>
+            <button onclick="removeFromCart('${name}')">➖</button>
+          `;
+        } else {
+          controls.innerHTML = `<button onclick="addToCart('${name}', ${price})">הוסף לעגלה</button>`;
+        }
+      });
+    }
+
+    function openCartModal() {
+      const dialog = document.getElementById("cartModal");
+      const listDiv = document.getElementById("cartList");
+      listDiv.innerHTML = "";
+
+      if (Object.keys(cart).length === 0) {
+        listDiv.innerHTML = "<p>העגלה ריקה.</p>";
+      } else {
+        Object.entries(cart).forEach(([name, item]) => {
+          listDiv.innerHTML += `<p>${name} – ${item.quantity} יחידות</p>`;
+        });
+      }
+
+      dialog.showModal();
+    }
+
+    function closeCartModal() {
+      document.getElementById("cartModal").close();
+    }
+
+    window.onload = updateGalleryButtons;
+  </script>
+</body>
+</html>
