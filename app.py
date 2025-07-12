@@ -4,11 +4,12 @@ import os
 
 app = Flask(__name__)
 
-TWILIO_ACCOUNT_SID = 'AC59ece13ed011dbca3af5aca1487b0b81'
-TWILIO_AUTH_TOKEN = '8c74576c7b36b35555e0c85ea9139da6'
-TWILIO_FROM = 'whatsapp:+14155238886'
-TWILIO_TO = 'whatsapp:+972586308498'
-IMGBB_API_KEY = 'b40744a040eb5fed409c7fec210b033c'
+# הסודות יגיעו מ-Environment Variables
+TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
+TWILIO_FROM = os.environ.get("TWILIO_FROM")
+TWILIO_TO = os.environ.get("TWILIO_TO")
+IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
 
 UPLOAD_URL = 'https://api.imgbb.com/1/upload'
 
