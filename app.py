@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template_string
+from flask import Flask, request, redirect, render_template_string, render_template
 import requests
 import os
 
@@ -24,7 +24,7 @@ def upload_image_to_imgbb(image_file):
 
 @app.route('/')
 def home():
-    return redirect('/form.html')
+    return render_template('form.html')
 
 @app.route('/send', methods=['POST'])
 def send():
@@ -57,7 +57,7 @@ def send():
         message += f"\n\U0001F4F7 תמונה מצורפת: {image_url}"
 
     send_whatsapp_message(message)
-    return render_template_string("<h2>ההזמנה נשלחה בהצלחה ל-WhatsApp!</h2><a href='/form.html'>חזרה</a>")
+    return render_template_string("<h2>ההזמנה נשלחה בהצלחה ל-WhatsApp!</h2><a href='/'>חזרה</a>")
 
 def send_whatsapp_message(body):
     url = f'https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json'
@@ -73,4 +73,3 @@ def send_whatsapp_message(body):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
-
