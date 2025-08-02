@@ -77,7 +77,8 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: 20px;
-      margin-top: 30px;
+      max-width: 1000px;
+      margin: 30px auto;
     }
     .gallery-item {
       background-color: white;
@@ -129,6 +130,7 @@
     <button onclick="closeCartModal()">סגור</button>
   </dialog>
 
+  <!-- טופס ההזמנה -->
   <div class="form-container">
     <h2>טופס ההזמנה</h2>
     <form id="mainForm" method="POST" action="/send" enctype="multipart/form-data">
@@ -146,25 +148,29 @@
 
       <input type="hidden" name="cartData" id="cartData">
     </form>
+  </div>
 
-    <div class="gallery">
-      <div class="gallery-item" data-name="בזיליקום" data-price="10">
-        <img src="/static/images/basil.jpg" alt="בזיליקום">
-        <h4>בזיליקום</h4>
-        <div class="controls"></div>
-      </div>
+  <!-- רווח לשדה חיפוש בעתיד -->
+  <div style="height: 40px; text-align: center;"></div>
 
-      <div class="gallery-item" data-name="עגבניות שרי" data-price="12">
-        <img src="/static/images/cherry-tomatoes.jpg" alt="עגבניות שרי">
-        <h4>עגבניות שרי</h4>
-        <div class="controls"></div>
-      </div>
+  <!-- גלריית הצמחים -->
+  <div class="gallery">
+    <div class="gallery-item" data-name="בזיליקום" data-price="10">
+      <img src="/static/images/basil.jpg" alt="בזיליקום">
+      <h4>בזיליקום</h4>
+      <div class="controls"></div>
+    </div>
 
-      <div class="gallery-item" data-name="לוונדר" data-price="15">
-        <img src="/static/images/lavender.jpg" alt="לוונדר">
-        <h4>לוונדר</h4>
-        <div class="controls"></div>
-      </div>
+    <div class="gallery-item" data-name="עגבניות שרי" data-price="12">
+      <img src="/static/images/cherry-tomatoes.jpg" alt="עגבניות שרי">
+      <h4>עגבניות שרי</h4>
+      <div class="controls"></div>
+    </div>
+
+    <div class="gallery-item" data-name="לוונדר" data-price="15">
+      <img src="/static/images/lavender.jpg" alt="לוונדר">
+      <h4>לוונדר</h4>
+      <div class="controls"></div>
     </div>
   </div>
 
