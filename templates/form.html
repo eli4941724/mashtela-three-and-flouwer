@@ -149,13 +149,6 @@
   </div>
 
   <div style="height: 40px; text-align: center;"></div>
-
-  <div class="gallery">
-    <div class="gallery-item" data-name="IMG_20250707_101208" data-price="10">
-      <img src="/static/image/IMG_20250707_101208.jpg" alt="IMG_20250707_101208">
-      <h4>IMG_20250707_101208</h4>
-      <div class="controls"></div>
-    </div>
     <div class="gallery-item" data-name="אאונים הוורתים 2" data-price="10">
       <img src="/static/image/אאונים_הוורתים_2.jpg" alt="אאונים הוורתים 2">
       <h4>אאונים הוורתים 2</h4>
@@ -195,7 +188,7 @@
 </div>
 
   <script>
-    let cart = {{}};
+    let cart = {};
     const form = document.getElementById("mainForm");
 
     function saveToLocalStorage() {{
@@ -226,7 +219,7 @@
         if (cart[name]) {{
           controls.innerHTML = `
             <button onclick="addToCart('${{name}}', ${{price}})">➕</button>
-            <span>${{cart[name].quantity}}</span>
+            <span>${cart[name].quantity}</span>
             <button onclick="removeFromCart('${{name}}')">➖</button>`;
         }} else {{
           controls.innerHTML = `<button onclick="addToCart('${{name}}', ${{price}})">הוסף לעגלה</button>`;
@@ -235,7 +228,7 @@
     }}
 
     function addToCart(name, price) {{
-      cart[name] = cart[name] || {{ price, quantity: 0 }};
+      cart[name] = cart[name] || { price, quantity: 0 };
       cart[name].quantity += 1;
       updateCartCount();
       updateGalleryButtons();
@@ -260,7 +253,7 @@
         list.innerHTML = "<p>העגלה ריקה.</p>";
       }} else {{
         Object.entries(cart).forEach(([name, item]) => {{
-          list.innerHTML += `<p>${{name}} – ${{item.quantity}} יחידות</p>`;
+          list.innerHTML += `<p>${{name}} – ${item.quantity} יחידות</p>`;
         }});
       }}
       modal.showModal();
