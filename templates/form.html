@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
   <title>משתלה אונליין</title>
   <style>
     body {
@@ -19,35 +18,14 @@
       gap: 10px;
       z-index: 999;
     }
-    .cart-icon {
-      font-size: 26px;
-      background-color: white;
-      padding: 8px 12px;
-      border-radius: 50%;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      cursor: pointer;
-      position: relative;
-    }
-    .cart-icon span {
-      background: red;
-      color: white;
-      border-radius: 50%;
-      padding: 2px 6px;
-      font-size: 12px;
-      position: absolute;
-      top: -5px;
-      right: -5px;
-    }
-    .send-button {
-      padding: 10px 16px;
+    .cart-icon, .send-button {
       font-size: 16px;
       background-color: #4CAF50;
       color: white;
+      padding: 10px 16px;
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      height: 48px;
-      margin-top: 1px;
     }
     .form-container {
       background-color: #ffffff;
@@ -57,14 +35,6 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    h2 {
-      text-align: center;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
-    }
     input {
       width: 100%;
       padding: 10px;
@@ -73,13 +43,56 @@
       border-radius: 8px;
       border: 1px solid #ccc;
     }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: 30px auto;
+    }
+    .gallery-item {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      padding: 10px;
+    }
+    .gallery-item img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .gallery-item h4 {
+      margin: 10px 0 5px;
+      font-size: 16px;
+    }
+    .controls button {
+      padding: 6px 10px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 0 2px;
+    }
+    .pagination {
+      text-align: center;
+      margin: 20px;
+    }
+    dialog#cartModal {
+      max-width: 400px;
+      border-radius: 12px;
+      padding: 20px;
+    }
   </style>
 </head>
 <body>
+
   <div class="top-bar">
-    <div class="cart-icon" onclick="openCartModal()">
-      🛒<span id="cartCount">0</span>
-    </div>
+    <button class="cart-icon" onclick="openCartModal()">🛒 עגלה <span id="cartCount">0</span></button>
+    <button class="send-button" onclick="submitForm()">שלח</button>
   </div>
 
   <dialog id="cartModal">
@@ -88,47 +101,84 @@
     <button onclick="closeCartModal()">סגור</button>
   </dialog>
 
-  <div class="form-container">
+  <form id="mainForm" class="form-container" method="POST" enctype="multipart/form-data">
     <h2>טופס ההזמנה</h2>
-    <form id="mainForm" method="POST" action="/send" enctype="multipart/form-data" onsubmit="return handleSubmit(event)">
-      <label>שם מלא:</label>
-      <input type="text" name="fullName" required placeholder="לדוגמה: דנה כהן">
-      <label>טלפון:</label>
-      <input type="text" name="phone" required>
-      <label>כתובת למשלוח:</label>
-      <input type="text" name="address" placeholder="רחוב, מספר, עיר">
-      <label>תמונה (למשל צילום שער):</label>
-      <input type="file" name="image" accept="image/*" capture="environment">
-      <input type="hidden" name="cartData" id="cartData">
-      <button class="send-button" type="submit">שלח</button>
-    </form>
+    <label>שם מלא:</label>
+    <input type="text" name="fullName" id="fullName" required>
+    <label>טלפון:</label>
+    <input type="text" name="phone" id="phone" required>
+    <label>כתובת למשלוח:</label>
+    <input type="text" name="address" id="address" required>
+    <label>תמונה:</label>
+    <input type="file" name="image" id="image" accept="image/*">
+    <input type="hidden" name="cartData" id="cartData">
+  </form>
 
-    <div style="text-align: center; margin-top: 20px;">
-      <a href="/catalog" style="font-size: 18px; text-decoration: none;">📁 לעיון בקטלוג הצמחים</a>
-    </div>
+  <div style="height: 40px;"></div>
+
+  <div class="gallery" id="gallery"></div>
+
+  <div class="pagination">
+    <button onclick="previousPage()">◀️ הקודם</button>
+    <span id="pageIndicator"></span>
+    <button onclick="nextPage()">הבא ▶️</button>
   </div>
 
   <script>
+    let plants = [];
+    const itemsPerPage = 15;
+    let currentPage = 0;
     let cart = {};
-    const form = document.getElementById("mainForm");
 
-    function saveToLocalStorage() {
-      localStorage.setItem("cart", JSON.stringify(cart));
-      localStorage.setItem("fullName", form.fullName.value);
-      localStorage.setItem("phone", form.phone.value);
-      localStorage.setItem("address", form.address.value);
+    function renderGallery() {
+      const gallery = document.getElementById("gallery");
+      gallery.innerHTML = "";
+      const start = currentPage * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageItems = plants.slice(start, end);
+
+      pageItems.forEach(plant => {
+        const item = document.createElement("div");
+        item.className = "gallery-item";
+        item.innerHTML = `
+          <img src="${plant.image_url}" alt="${plant.name}">
+          <h4>${plant.name}</h4>
+          <div class="controls">
+            ${cart[plant.name] ? `
+              <button onclick="addToCart('${plant.name}')">➕</button>
+              <span>${cart[plant.name].quantity}</span>
+              <button onclick="removeFromCart('${plant.name}')">➖</button>
+            ` : `<button onclick="addToCart('${plant.name}')">הוסף לעגלה</button>`}
+          </div>
+        `;
+        gallery.appendChild(item);
+      });
+
+      document.getElementById("pageIndicator").textContent =
+        `עמוד ${currentPage + 1} מתוך ${Math.ceil(plants.length / itemsPerPage)}`;
     }
 
-    function loadFromLocalStorage() {
-      const savedCart = localStorage.getItem("cart");
-      if (savedCart) cart = JSON.parse(savedCart);
-      form.fullName.value = localStorage.getItem("fullName") || "";
-      form.phone.value = localStorage.getItem("phone") || "";
-      form.address.value = localStorage.getItem("address") || "";
+    function addToCart(name) {
+      if (!cart[name]) {
+        cart[name] = { quantity: 1 };
+      } else {
+        cart[name].quantity++;
+      }
+      renderGallery();
+      updateCartCount();
+    }
+
+    function removeFromCart(name) {
+      if (cart[name]) {
+        cart[name].quantity--;
+        if (cart[name].quantity <= 0) delete cart[name];
+      }
+      renderGallery();
+      updateCartCount();
     }
 
     function updateCartCount() {
-      const total = Object.values(cart).reduce((s, i) => s + i.quantity, 0);
+      const total = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
       document.getElementById("cartCount").textContent = total;
     }
 
@@ -137,11 +187,11 @@
       const list = document.getElementById("cartList");
       list.innerHTML = "";
       if (Object.keys(cart).length === 0) {
-        list.innerHTML = "<p>העגלה ריקה.</p>";
+        list.innerHTML = "<p>העגלה ריקה</p>";
       } else {
-        Object.entries(cart).forEach(([name, item]) => {
+        for (const [name, item] of Object.entries(cart)) {
           list.innerHTML += `<p>${name} – ${item.quantity} יחידות</p>`;
-        });
+        }
       }
       modal.showModal();
     }
@@ -150,30 +200,62 @@
       document.getElementById("cartModal").close();
     }
 
-    function handleSubmit(e) {
-      if (!form.fullName.value.trim() || !form.phone.value.trim()) {
-        alert("אנא מלא את השם המלא ומספר הטלפון.");
-        return false;
+    function nextPage() {
+      if ((currentPage + 1) * itemsPerPage < plants.length) {
+        currentPage++;
+        renderGallery();
       }
+    }
+
+    function previousPage() {
+      if (currentPage > 0) {
+        currentPage--;
+        renderGallery();
+      }
+    }
+
+    function submitForm() {
+      const form = document.getElementById("mainForm");
+      const fullName = form.fullName.value.trim();
+      const phone = form.phone.value.trim();
+      const address = form.address.value.trim();
+
+      if (!fullName || !phone || !address) {
+        alert("נא למלא את כל שדות הטופס");
+        return;
+      }
+
       if (Object.keys(cart).length === 0) {
-        alert("העגלה ריקה. אנא הוסף פריטים לפני השלחה.");
-        return false;
+        alert("העגלה ריקה. נא לבחור מוצרים");
+        return;
       }
-      document.getElementById("cartData").value = JSON.stringify(cart);
-      saveToLocalStorage();
-      return true;
+
+      const formData = new FormData(form);
+      formData.set('cartData', JSON.stringify(cart));
+
+      fetch('/send', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.text())
+      .then(msg => {
+        alert(msg);
+      })
+      .catch(() => {
+        alert("אירעה שגיאה בשליחה");
+      });
     }
 
     window.onload = () => {
-      loadFromLocalStorage();
-      updateCartCount();
-
-      form.fullName.addEventListener("input", saveToLocalStorage);
-      form.phone.addEventListener("input", saveToLocalStorage);
-      form.address.addEventListener("input", saveToLocalStorage);
-
-      setInterval(saveToLocalStorage, 5000);
+      fetch('/plants')
+        .then(res => res.json())
+        .then(data => {
+          plants = data;
+          renderGallery();
+          updateCartCount();
+        });
     };
   </script>
+
 </body>
 </html>

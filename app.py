@@ -1,40 +1,44 @@
-from flask import Flask, request, redirect, render_template_string, render_template, url_for
+from flask import Flask, request, render_template, jsonify
+import pandas as pd
 import requests
 import os
-import pandas as pd
 
 app = Flask(__name__)
 
-# סודות מהסביבה
+# הגדרת משתנים מהסביבה
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
 TWILIO_FROM = os.environ.get("TWILIO_FROM")
 TWILIO_TO = os.environ.get("TWILIO_TO")
 IMGBB_API_KEY = os.environ.get("IMGBB_API_KEY")
-
 UPLOAD_URL = 'https://api.imgbb.com/1/upload'
 
+# דף הבית
+@app.route('/')
+def form():
+    return render_template('form.html')
+
+# החזרת רשימת הצמחים
+@app.route('/plants')
+def get_plants():
+    df = pd.read_csv('plants.csv')
+    return jsonify(df.to_dict(orient='records'))
+
+# העלאת תמונה ל־ImgBB
 def upload_image_to_imgbb(image_file):
     try:
-        response = requests.post(UPLOAD_URL, params={"key": IMGBB_API_KEY},
-                                 files={"image": image_file.read()})
+        response = requests.post(
+            UPLOAD_URL,
+            params={"key": IMGBB_API_KEY},
+            files={"image": image_file.read()}
+        )
         data = response.json()
         return data['data']['url'] if 'data' in data else None
     except Exception as e:
         print("Image upload failed:", e)
         return None
 
-@app.route('/')
-def home():
-    return render_template('form.html')
-
-@app.route('/catalog')
-def show_plants():
-    plants = pd.read_csv('plants.csv')
-    for plant in plants.to_dict(orient='records'):
-        plant['image'] = url_for('static', filename=f'images/{plant["image"]}')
-    return render_template('plants.html', plants=plants.to_dict(orient='records'))
-
+# שליחת ההודעה
 @app.route('/send', methods=['POST'])
 def send():
     full_name = request.form.get('fullName', '')
@@ -64,31 +68,26 @@ def send():
     if image_url:
         message += f"\n📷 תמונה מצורפת: {image_url}"
 
-    send_whatsapp_message(message)
-
-    return render_template_string("<h2>ההזמנה נשלחה (או נכשלה) – בדקי את הלוגים</h2><a href='/'>חזרה</a>")
-
-def send_whatsapp_message(body):
+    # שליחת הודעה ל־Twilio
     url = f'https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json'
     auth = (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     data = {
         'From': TWILIO_FROM,
         'To': TWILIO_TO,
-        'Body': body
+        'Body': message
     }
 
     try:
-        print("📤 שולחת הודעה ל-Twilio...")
         response = requests.post(url, data=data, auth=auth)
         print("Twilio status:", response.status_code)
         print("Response:", response.text)
-
         if response.status_code == 201:
-            print("✅ ההודעה נשלחה בהצלחה!")
+            return 'ההודעה נשלחה בהצלחה!'
         else:
-            raise Exception(f"❌ שגיאה בשליחה ל-Twilio: {response.status_code}, {response.text}")
+            return f"שגיאה בשליחה: {response.status_code}"
     except Exception as e:
-        print("⚠️ חריגה בזמן שליחת WhatsApp:", e)
+        print("שגיאה בשליחה ל־Twilio:", e)
+        return 'שגיאה בשליחה ל־Twilio'
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    app.run(debug=True)
