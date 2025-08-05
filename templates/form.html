@@ -168,6 +168,11 @@
   function renderGallery() {
     const gallery = document.getElementById("gallery");
     gallery.innerHTML = "";
+    if (filteredPlants.length === 0) {
+      gallery.innerHTML = '<p style="text-align:center; font-size: 18px; color: gray;">לא נמצאו תוצאות</p>';
+      document.getElementById("pageIndicator").textContent = "";
+      return;
+    }
     const start = currentPage * itemsPerPage;
     const end = start + itemsPerPage;
     const pageItems = filteredPlants.slice(start, end);
@@ -200,6 +205,15 @@
       cart[name].quantity++;
     }
     renderGallery();
+
+  function searchPlants() {
+    const query = document.getElementById("searchInput").value.toLowerCase();
+    filteredPlants = plants.filter(p => p.name.toLowerCase().includes(query));
+    currentPage = 0;
+    renderGallery();
+  }
+    updateCartCount();
+  }
 
   function searchPlants() {
     const query = document.getElementById("searchInput").value.toLowerCase();
