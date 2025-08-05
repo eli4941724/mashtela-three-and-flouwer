@@ -146,6 +146,10 @@
 
 <div style="height: 40px;"></div>
 
+<div style="max-width: 600px; margin: 0 auto 20px auto; text-align: center;">
+  <input type="text" id="searchInput" placeholder="חיפוש לפי שם צמח..." oninput="searchPlants()" style="width: 100%; padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc;">
+</div>
+
 <div class="gallery" id="gallery"></div>
 
 <div class="pagination">
@@ -156,6 +160,7 @@
 
 <script>
   let plants = [];
+  let filteredPlants = [];
   const itemsPerPage = 15;
   let currentPage = 0;
   let cart = {};
@@ -165,7 +170,7 @@
     gallery.innerHTML = "";
     const start = currentPage * itemsPerPage;
     const end = start + itemsPerPage;
-    const pageItems = plants.slice(start, end);
+    const pageItems = filteredPlants.slice(start, end);
 
     pageItems.forEach(plant => {
       const item = document.createElement("div");
@@ -195,6 +200,13 @@
       cart[name].quantity++;
     }
     renderGallery();
+
+  function searchPlants() {
+    const query = document.getElementById("searchInput").value.toLowerCase();
+    filteredPlants = plants.filter(p => p.name.toLowerCase().includes(query));
+    currentPage = 0;
+    renderGallery();
+  }
     updateCartCount();
   }
 
@@ -281,6 +293,7 @@
       .then(res => res.json())
       .then(data => {
         plants = data;
+        filteredPlants = plants;
         renderGallery();
         updateCartCount();
       });
