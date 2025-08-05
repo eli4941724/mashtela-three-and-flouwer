@@ -195,7 +195,7 @@
     });
 
     document.getElementById("pageIndicator").textContent =
-      `עמוד ${currentPage + 1} מתוך ${Math.ceil(plants.length / itemsPerPage)}`;
+      `עמוד ${currentPage + 1} מתוך ${Math.ceil(filteredPlants.length / itemsPerPage)}`;
   }
 
   function addToCart(name) {
@@ -205,22 +205,6 @@
       cart[name].quantity++;
     }
     renderGallery();
-
-  function searchPlants() {
-    const query = document.getElementById("searchInput").value.toLowerCase();
-    filteredPlants = plants.filter(p => p.name.toLowerCase().includes(query));
-    currentPage = 0;
-    renderGallery();
-  }
-    updateCartCount();
-  }
-
-  function searchPlants() {
-    const query = document.getElementById("searchInput").value.toLowerCase();
-    filteredPlants = plants.filter(p => p.name.toLowerCase().includes(query));
-    currentPage = 0;
-    renderGallery();
-  }
     updateCartCount();
   }
 
@@ -257,7 +241,7 @@
   }
 
   function nextPage() {
-    if ((currentPage + 1) * itemsPerPage < plants.length) {
+    if ((currentPage + 1) * itemsPerPage < filteredPlants.length) {
       currentPage++;
       renderGallery();
     }
@@ -268,6 +252,13 @@
       currentPage--;
       renderGallery();
     }
+  }
+
+  function searchPlants() {
+    const query = document.getElementById("searchInput").value.toLowerCase();
+    filteredPlants = plants.filter(p => p.name.toLowerCase().includes(query));
+    currentPage = 0;
+    renderGallery();
   }
 
   function submitForm() {
