@@ -42,7 +42,8 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     input {
-      width: 100%;
+      max-width: 100%;
+      width: calc(100% - 2px);
       padding: 10px;
       font-size: 16px;
       margin-top: 5px;
@@ -130,6 +131,10 @@
   <div id="cartList"></div>
   <button onclick="closeCartModal()">סגור</button>
 </dialog>
+
+<div style="max-width: 800px; margin: 100px auto 40px auto; text-align: center;">
+  <h1 style="font-size: 24px; color: #2e7d32; margin-bottom: 20px;">משתלת יצור פרחים ועצי פרי בחדרה<br>משלוחים בכל הארץ לגננים ופרטים</h1>
+</div>
 
 <form id="mainForm" class="form-container" method="POST" enctype="multipart/form-data">
   <h2>טופס ההזמנה</h2>
