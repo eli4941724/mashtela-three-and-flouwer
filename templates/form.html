@@ -121,9 +121,11 @@
   </style>
 </head>
 <body>
-<div style="position: absolute; top: 60px; left: 15px; z-index: 998;">
-  <img src="/static/image/logo_fixed_final.jpg" alt="לוגו המשתלה" style="width: 80px; border-radius: 50%; background: white; border: 3px solid white;">
+<div style="display: flex; align-items: center; justify-content: center; flex-direction: row-reverse; gap: 30px; max-width: 900px; margin: 100px auto 20px auto;">
+  <img src="/static/image/logo_fixed_final.jpg" alt="לוגו המשתלה" style="width: 160px; border-radius: 50%; background: white; border: 4px solid white;">
+  <h1 style="font-size: 28px; color: #2e7d32; text-align: right; line-height: 1.5;">משתלת יצור פרחים ועצי פרי בחדרה<br>משלוחים בכל הארץ לגננים ופרטים</h1>
 </div>
+<!-- הוסרה תצוגת הלוגו מעלה -->
 <div class="top-bar">
   <button class="cart-icon" onclick="openCartModal()">🛒 עגלה <span id="cartCount">0</span></button>
   <button class="send-button" onclick="submitForm()">שלח</button>
@@ -135,9 +137,7 @@
   <button onclick="closeCartModal()">סגור</button>
 </dialog>
 
-<div style="max-width: 800px; margin: 100px auto 40px auto; text-align: center;">
-  <h1 style="font-size: 24px; color: #2e7d32; margin-bottom: 20px;">משתלת יצור פרחים ועצי פרי בחדרה<br>משלוחים בכל הארץ לגננים ופרטים</h1>
-</div>
+
 
 <form id="mainForm" class="form-container" method="POST" enctype="multipart/form-data">
   <h2>טופס ההזמנה</h2>
